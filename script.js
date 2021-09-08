@@ -18,8 +18,8 @@ const FETCH_THRESHOLD = 2;
 let fetchAttempt = 0;
 
 async function handleDeleteMessage(event){
-  await sendRequest(getAllMessagesEndPoint + `/${event.srcElement.id}`, "DELETE");
   document.getElementById(`div-${event.srcElement.id}`).remove();
+  await sendRequest(getAllMessagesEndPoint + `/${event.srcElement.id}`, "DELETE");
   setTimeout(updateUIMessages, 1000);
 }
 
