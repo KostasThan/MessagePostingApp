@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <title>Message App</title>
+  </head>
+  <body>
+    <div>
+      <h3>Want to enter a message?</h3>
+      <div id="formDiv">
+        <form">
+          <label for="fname">Author:</label><br />
+          <input type="text" id="authorInput" /><br />
+          <label for="messageInput">Message:</label><br />
+          <input type="text" id="messageInput" /><br /><br />
+          <input type="button" value="Submit" id="postMessageButton" />
+        </form>
+      </div>
+    </div>
+    <div class="messagesDiv" id='messagesDiv'>
+      <div>
+        <label class="author">Author: </label>
+      </div>
+      <div>
+        <p class="messagePar"> This is a paragraph</p>
+      </div>
+    </div>
+  </body>
+  <script src="script.js"></script>
+</html>

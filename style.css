@@ -1,0 +1,36 @@
+#formDiv {
+  margin: 0 auto;
+  text-align: center;
+}
+
+body {
+    background: linear-gradient(to left, rgb(241, 99, 194), rgb(87, 170, 218));
+}
+
+h3 {
+  text-align: center;
+}
+
+.messagesDiv {
+  text-align: center;
+  margin-top: 20px;
+  border:1px solid black;
+}
+
+.author {
+  text-decoration: underline;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.messagePar {
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
+hr {
+    margin-left: 10%;
+    margin-right: 10%;
+    border-color: blueviolet;
+    background-color: blueviolet;
+}
