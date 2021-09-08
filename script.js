@@ -111,7 +111,7 @@ function createMessageElement(message) {
 
 function printMessages(messages) {
   eraseCurrentMessages();
-  const messagesArray = Object.values(messages).sort( (m1, m2) => m1.id < m2.id ? 1 : -1);
+  const messagesArray = Object.values(messages).sort( (m1, m2) => m1.id > m2.id ? 1 : -1);
   for (let message of messagesArray) {
     createMessageElement(message);
   }
