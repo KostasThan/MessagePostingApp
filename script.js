@@ -39,15 +39,19 @@ async function postMessage() {
   const author = authorInput.value;
   const message = messageInput.value;
 
-  const body = {
-    author: author,
-    message: message,
-  };
-
-  console.log("sending");
-  const resp = await sendRequest(postMessageEndpoint, "PUT", body);
-  console.log("got the response", resp);
-  setTimeout(updateUIMessages, 1500);
+  if(author && message){
+    
+    const body = {
+      author: author,
+      message: message,
+    };
+  
+    console.log("sending");
+    const resp = await sendRequest(postMessageEndpoint, "PUT", body);
+    console.log(resp);
+  
+    setTimeout(updateUIMessages, 1500);
+  }
 }
 
 // Example POST method implementation:

@@ -43,3 +43,31 @@ hr {
     border: none;
     background: none;
 }
+
+
+.textarea {
+    border: 2px solid rgb(46, 13, 43);
+    font-family: inherit;
+    font-size: inherit;
+    padding: 1px 6px;
+    background: none;
+  }
+  
+ 
+  .textarea {
+    display:table;
+    margin:0 auto;
+    overflow: hidden;
+    resize: both;
+    min-height: 40px;
+    line-height: 20px;
+  }
+  
+  .textarea[contenteditable]:empty::before {
+    content: "Placeholder still possible";
+    color: gray;
+  }
+
+  .submitButton{
+    background: linear-gradient(to left, rgb(241, 99, 194), rgb(87, 170, 218));
+  }
