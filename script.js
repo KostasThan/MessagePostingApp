@@ -24,7 +24,7 @@ function clearInputs() {
   messageInput.value = "";
 }
 
-function postMessage() {
+async function postMessage() {
   console.log(authorInput);
   console.log(messageInput);
   console.log(authorInput.value);
@@ -36,7 +36,8 @@ function postMessage() {
     message: message,
   };
 
-  sendMessagePostRequest(body).catch((resp) => console.log(resp));
+  const resp = await sendMessagePostRequest(body);
+  updateUIMessages();
 }
 
 // Example POST method implementation:
