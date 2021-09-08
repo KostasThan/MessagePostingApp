@@ -34,3 +34,12 @@ hr {
     border-color: blueviolet;
     background-color: blueviolet;
 }
+
+.delete-button {
+    position: absolute;
+    right: 100px;
+    color: #333;
+    cursor: pointer;
+    border: none;
+    background: none;
+}

@@ -14,8 +14,15 @@ const postMessageEndpoint =
 // const postMessageEndpoint = "https://herokudbm.herokuapp.com/messages";
 const postMessageButton = document.getElementById("postMessageButton");
 
-const FETCH_THRESHOLD = 0;
+const FETCH_THRESHOLD = 2;
 let fetchAttempt = 0;
+
+async function handleDeleteMessage(event){
+  await sendRequest(getAllMessagesEndPoint + `/${event.srcElement.id}`, "DELETE");
+  document.getElementById(`div-${event.srcElement.id}`).remove();
+  setTimeout(updateUIMessages, 1000);
+}
+
 
 function handlePostMessage(event) {
   postMessage();
@@ -38,16 +45,16 @@ async function postMessage() {
   };
 
   console.log("sending");
-  const resp = await sendMessagePostRequest(body);
+  const resp = await sendRequest(postMessageEndpoint, "PUT", body);
   console.log("got the response", resp);
   setTimeout(updateUIMessages, 1500);
 }
 
 // Example POST method implementation:
-async function sendMessagePostRequest(message = {}) {
+async function sendRequest(url , method, message = {}) {
   // Default options are marked with *
-  const response = await fetch(postMessageEndpoint, {
-    method: "PUT", // *GET, POST, PUT, DELETE, etc.
+  const response = await fetch(url, {
+    method, // *GET, POST, PUT, DELETE, etc.
     mode: "cors", // no-cors, *cors, same-origin
     cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
     credentials: "same-origin", // include, *same-origin, omit
@@ -72,11 +79,12 @@ async function fetchMessages() {
 async function updateUIMessages() {
   let response = await fetch(getAllMessagesEndPoint);
   let messages = await response.json();
+  console.log("fetched\n", messages);
   //refetching
-  if (!messages.length || !messages || messages === [] || messages == []) {
+  if (!messages.length) {
+    fetchAttempt++;
     if(fetchAttempt < FETCH_THRESHOLD){
       console.log("refetching");
-      fetchAttempt++;
       setTimeout(updateUIMessages, 2000);
     }
     else{
@@ -96,17 +104,30 @@ function eraseCurrentMessages() {
 
 function createMessageElement(message) {
 
+  const messageContainer = document.createElement('div');
+  messageContainer.id = `div-${message.id}`
+
   const authorLabel = document.createElement("label");
   authorLabel.classList.add("author");
   authorLabel.textContent = message.author;
-  messagesDiv.append(authorLabel);
+  messageContainer.append(authorLabel);
+
+  const deleteButton = document.createElement("button");
+  deleteButton.classList.add("delete-button");
+  deleteButton.textContent = 'x';
+  deleteButton.id = message.id;
+  deleteButton.addEventListener("click", handleDeleteMessage);
+  messageContainer.append(deleteButton);
+
 
   const messagePar = document.createElement("p");
   messagePar.classList.add("messagePar");
   messagePar.textContent = message.message;
-  messagesDiv.append(messagePar);
+  messageContainer.append(messagePar);
 
-  messagesDiv.append(document.createElement("hr"));
+  messageContainer.append(document.createElement("hr"));
+
+  messagesDiv.append(messageContainer);
 }
 
 function printMessages(messages) {
@@ -119,4 +140,4 @@ function printMessages(messages) {
 }
 
 postMessageButton.addEventListener("click", handlePostMessage);
-
+updateUIMessages();
