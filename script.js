@@ -14,6 +14,9 @@ const postMessageEndpoint =
 // const postMessageEndpoint = "https://herokudbm.herokuapp.com/messages";
 const postMessageButton = document.getElementById("postMessageButton");
 
+const FETCH_THRESHOLD = 0;
+let fetchAttempt = 0;
+
 function handlePostMessage(event) {
   postMessage();
   clearInputs();
@@ -25,9 +28,7 @@ function clearInputs() {
 }
 
 async function postMessage() {
-  console.log(authorInput);
-  console.log(messageInput);
-  console.log(authorInput.value);
+
   const author = authorInput.value;
   const message = messageInput.value;
 
@@ -36,13 +37,14 @@ async function postMessage() {
     message: message,
   };
 
+  console.log("sending");
   const resp = await sendMessagePostRequest(body);
-  updateUIMessages();
+  console.log("got the response", resp);
+  setTimeout(updateUIMessages, 1500);
 }
 
 // Example POST method implementation:
 async function sendMessagePostRequest(message = {}) {
-  console.log(message);
   // Default options are marked with *
   const response = await fetch(postMessageEndpoint, {
     method: "PUT", // *GET, POST, PUT, DELETE, etc.
@@ -68,17 +70,20 @@ async function fetchMessages() {
 }
 
 async function updateUIMessages() {
-  console.log("initial fetch");
   let response = await fetch(getAllMessagesEndPoint);
   let messages = await response.json();
-
-  console.log(messages);
-  console.log(messages ? true : false);
   //refetching
   if (!messages.length || !messages || messages === [] || messages == []) {
-    console.log("refetching");
-    setTimeout(updateUIMessages, 2000);
-  } else {
+    if(fetchAttempt < FETCH_THRESHOLD){
+      console.log("refetching");
+      fetchAttempt++;
+      setTimeout(updateUIMessages, 2000);
+    }
+    else{
+      console.log("aborting fetch");
+      fetchAttempt = 0;
+    }
+  }else{
     printMessages(messages);
   }
 }
@@ -90,6 +95,7 @@ function eraseCurrentMessages() {
 }
 
 function createMessageElement(message) {
+
   const authorLabel = document.createElement("label");
   authorLabel.classList.add("author");
   authorLabel.textContent = message.author;
@@ -104,10 +110,9 @@ function createMessageElement(message) {
 }
 
 function printMessages(messages) {
-  console.log("printing messages");
   eraseCurrentMessages();
-  for (let message of messages) {
-    console.log("inside for");
+  const messagesArray = Object.values(messages).sort( (m1, m2) => m1.id < m2.id ? 1 : -1);
+  for (let message of messagesArray) {
     createMessageElement(message);
   }
 }
