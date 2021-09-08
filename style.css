@@ -71,3 +71,7 @@ hr {
   .submitButton{
     background: linear-gradient(to left, rgb(241, 99, 194), rgb(87, 170, 218));
   }
+
+  #authorInput{
+    background: linear-gradient(to right, rgb(241, 99, 194), rgb(87, 170, 218));
+  }
