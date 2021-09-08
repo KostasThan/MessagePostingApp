@@ -119,4 +119,4 @@ function printMessages(messages) {
 }
 
 postMessageButton.addEventListener("click", handlePostMessage);
-// updateUIMessages();
+
