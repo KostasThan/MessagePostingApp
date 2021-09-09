@@ -49,7 +49,7 @@ async function postMessage() {
   
     console.log("sending");
     const resp = await sendRequest(postMessageEndpoint, "PUT", body);
-    console.log(resp);
+    
   
     setTimeout(updateUIMessages, 1500);
   }
@@ -82,9 +82,10 @@ async function fetchMessages() {
 }
 
 async function updateUIMessages() {
+  console.log("initiating fetch");
   let response = await fetch(getAllMessagesEndPoint);
-  let messages = await response.json();
-  console.log("fetched\n", messages);
+  let messages = await response?.json();
+  console.log("fetched\n");
   //refetching
   if (!messages.length) {
     fetchAttempt++;
@@ -107,7 +108,15 @@ function eraseCurrentMessages() {
   }
 }
 
+function hasTodaysDate(messageDate) {
+  const today = new Date();
+  return today.getFullYear() === messageDate.getFullYear() &&
+  today.getMonth() === messageDate.getMonth() &&
+  today.getDate() === messageDate.getDate();
+}
+
 function createMessageElement(message) {
+  
 
   const messageContainer = document.createElement('div');
   messageContainer.id = `div-${message.id}`
@@ -133,10 +142,20 @@ function createMessageElement(message) {
   messagePar.textContent = message.message;
   messageContainer.append(messagePar);
 
-  const datePar = document.createElement("span");
-  datePar.classList.add("datePar");
-  datePar.textContent = `(${message.date?.replace("Z","")})`;
-  messageContainer.append(datePar);
+
+  console.log(message.date);
+  if(message.date){
+    const messageDate = new Date(message.date.replace("T", " ") + " UTC");
+    const datePar = document.createElement("span");
+    datePar.classList.add("datePar");
+    if(hasTodaysDate(messageDate)){
+      datePar.textContent = `${messageDate.getHours()}:${messageDate.getMinutes()}`;
+    }else{
+      datePar.textContent = `${messageDate.getDay()}-${messageDate.getMonth() + 1}-${messageDate.getFullYear()}`;
+    }
+    messageContainer.append(datePar);
+  }
+  
 
   messageContainer.append(document.createElement("hr"));
 
