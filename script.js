@@ -34,16 +34,19 @@ function clearInputs() {
   messageInput.value = "";
 }
 
+
 async function postMessage() {
 
   const author = authorInput.value;
   const message = messageInput.value;
 
+  
+
   if(author && message){
-    
+
     const body = {
-      author: author,
-      message: message,
+      author,
+      message,
     };
   
     console.log("sending");
@@ -123,11 +126,19 @@ function createMessageElement(message) {
   deleteButton.addEventListener("click", handleDeleteMessage);
   messageContainer.append(deleteButton);
 
+  const br = document.createElement("br");
+  messageContainer.append(br);
 
-  const messagePar = document.createElement("p");
+
+  const messagePar = document.createElement("span");
   messagePar.classList.add("messagePar");
   messagePar.textContent = message.message;
   messageContainer.append(messagePar);
+
+  const datePar = document.createElement("span");
+  datePar.classList.add("datePar");
+  datePar.textContent = `(${message.date.replace("Z","")})`;
+  messageContainer.append(datePar);
 
   messageContainer.append(document.createElement("hr"));
 
@@ -145,3 +156,4 @@ function printMessages(messages) {
 
 postMessageButton.addEventListener("click", handlePostMessage);
 updateUIMessages();
+

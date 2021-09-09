@@ -18,9 +18,10 @@ h3 {
 }
 
 .author {
-  text-decoration: underline;
-  font-weight: bold;
-  font-size: 18px;
+  /* text-decoration: underline; */
+  /* font-weight: bold; */
+  /* font-size: 18px;  */
+  font-family: ;
 }
 
 .messagePar {
@@ -74,4 +75,13 @@ hr {
 
   #authorInput{
     background: linear-gradient(to right, rgb(241, 99, 194), rgb(87, 170, 218));
+    font-style: italic;
+  }
+
+  .datePar{
+    font-style: italic;
+    font-weight: bold;
+    opacity: 0.5;
+    font-size:8px;
+
   }
