@@ -40,8 +40,6 @@ async function postMessage() {
   const author = authorInput.value;
   const message = messageInput.value;
 
-  
-
   if(author && message){
 
     const body = {
@@ -137,7 +135,7 @@ function createMessageElement(message) {
 
   const datePar = document.createElement("span");
   datePar.classList.add("datePar");
-  datePar.textContent = `(${message.date.replace("Z","")})`;
+  datePar.textContent = `(${message.date?.replace("Z","")})`;
   messageContainer.append(datePar);
 
   messageContainer.append(document.createElement("hr"));
@@ -147,9 +145,8 @@ function createMessageElement(message) {
 
 function printMessages(messages) {
   eraseCurrentMessages();
-  const messagesArray = Object.values(messages).sort( (m1, m2) => m1.id < m2.id ? 1 : -1);
-  console.log(messagesArray);
-  for (let message of messagesArray) {
+  const sortedMessages = Object.values(messages).sort( (m1, m2) => m1.id < m2.id ? 1 : -1);
+  for (let message of sortedMessages) {
     createMessageElement(message);
   }
 }
