@@ -8,6 +8,7 @@ const authorInput = document.getElementById("authorInput");
 const messageInput = document.getElementById("messageInput");
 const seeMoreDiv = document.getElementById("seeMoreDiv");
 const seeMoreButton = document.getElementById("seeMoreButton");
+const loadingMessagesDiv = document.getElementById("loadingMessagesDiv");
 const INITIAL_SIZE = 5;
 const FETCH_THRESHOLD = 2;
 
@@ -38,7 +39,6 @@ async function handleDeleteMessage(event){
 
 function handlePostMessage(event) {
   postMessage();
-  clearInputs();
 }
 
 function clearInputs() {
@@ -52,6 +52,7 @@ async function postMessage() {
   const author = authorInput.value;
   const message = messageInput.value;
   if(author && message){
+    clearInputs();
     const body = {
       author,
       message,
@@ -60,6 +61,7 @@ async function postMessage() {
     const resp = await sendRequest(postMessageEndpoint, "PUT", body);
 
     setTimeout(() => updateUIMessages(firstMessagesEndpoint, true), 1500);
+    
   }
 }
 
@@ -221,12 +223,18 @@ function printMessages(messages) {
 postMessageButton.addEventListener("click", handlePostMessage);
 seeMoreButton.addEventListener("click",
  () => updateUIMessages(allButFirstMessagesEndpoint, false));
-
+ messageInput.addEventListener("keyup", function(e) {
+   console.log(e.key);
+   if(e.key === "Enter"){
+     e.preventDefault();
+     handlePostMessage(e)
+   }
+ });
 
 updateUIMessages();
-
 if(messagesShown > 0){
   document.getElementById("loadingMessagesDiv").classList.add("hidden");
 }
+
 
 
