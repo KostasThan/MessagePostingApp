@@ -17,28 +17,38 @@ const getAllMessagesEndPoint =
 
 const postMessageEndpoint =
   "https://infinite-escarpment-61510.herokuapp.com/https://herokudbm.herokuapp.com/messages/testroute";
-const messageCountEndpoint = 
-"https://infinite-escarpment-61510.herokuapp.com/https://herokudbm.herokuapp.com/messages/count";
+const messageCountEndpoint =
+  "https://infinite-escarpment-61510.herokuapp.com/https://herokudbm.herokuapp.com/messages/count";
 
-const firstMessagesEndpoint = getAllMessagesEndPoint + `?limit=${INITIAL_SIZE}`
-const allButFirstMessagesEndpoint = getAllMessagesEndPoint + `offset=${INITIAL_SIZE}&limit=`
+const firstMessagesEndpoint = getAllMessagesEndPoint + `?limit=${INITIAL_SIZE}`;
+const allButFirstMessagesEndpoint =
+  getAllMessagesEndPoint + `offset=${INITIAL_SIZE}&limit=`;
 
 const postMessageButton = document.getElementById("postMessageButton");
 
 let messagesShown = 0;
 let fetchAttempt = 0;
+let dirtyList = false;
 
-async function handleDeleteMessage(event){
+async function handleDeleteMessage(event) {
+  dirtyList = true;
   document.getElementById(`div-${event.srcElement.id}`).remove();
-  await sendRequest(getAllMessagesEndPoint + `/${event.srcElement.id}`, "DELETE");
+  await sendRequest(
+    getAllMessagesEndPoint + `/${event.srcElement.id}`,
+    "DELETE"
+  );
   //if delete fails, we need to rerender the message
-
   // setTimeout(() => updateUIMessages(firstMessagesEndpoint, true), 1000);
 }
 
-
-function handlePostMessage(event) {
-  postMessage();
+async function handlePostMessage(event) {
+  const author = authorInput.value;
+  const message = messageInput.value;
+  let dummyMessage = createTempElement(author, message);
+  if(messagesShown == INITIAL_SIZE){
+    messagesDiv.lastChild.remove();
+  }
+  await postMessage(author, message);
 }
 
 function clearInputs() {
@@ -46,12 +56,22 @@ function clearInputs() {
   messageInput.value = "";
 }
 
+function createTempElement(author, message) {
+  if (author && message) {
+    let date = new Date();
+    let dummyMessage = {
+      author,
+      message,
+      date: date.getUTCDate(),
+      id: "temp",
+    };
 
-async function postMessage() {
+    return createMessageElement(dummyMessage);
+  }
+}
 
-  const author = authorInput.value;
-  const message = messageInput.value;
-  if(author && message){
+async function postMessage(author, message) {
+  if (author && message) {
     clearInputs();
     const body = {
       author,
@@ -60,13 +80,13 @@ async function postMessage() {
     console.log("sending");
     const resp = await sendRequest(postMessageEndpoint, "PUT", body);
 
-    setTimeout(() => updateUIMessages(firstMessagesEndpoint, true), 1500);
-    
+    updateUIMessages(firstMessagesEndpoint, true);
+    // setTimeout(() => updateUIMessages(firstMessagesEndpoint, true), 1500);
   }
 }
 
 // Example POST method implementation:
-async function sendRequest(url , method, message = {}) {
+async function sendRequest(url, method, message = {}) {
   // Default options are marked with *
   const response = await fetch(url, {
     method, // *GET, POST, PUT, DELETE, etc.
@@ -90,8 +110,6 @@ async function getMessageRequest(response) {
   if (INITIAL_SIZE) {
     console.log("sending paginated message");
     response = await fetch(getAllMessagesEndPoint + `?limit=${INITIAL_SIZE}`);
-    console.log("endpoint: " + getAllMessagesEndPoint + `?size=${INITIAL_SIZE}`)
-
   } else {
     console.log("asking for all messages");
     response = await fetch(getAllMessagesEndPoint);
@@ -99,9 +117,9 @@ async function getMessageRequest(response) {
   return response;
 }
 
-async function fetchMessages(fetchURI){
+async function fetchMessages(fetchURI) {
   console.log("initiating fetch");
-  
+
   let response;
   response = await getMessageRequest(response);
   let messages = await response?.json();
@@ -109,37 +127,39 @@ async function fetchMessages(fetchURI){
   return messages;
 }
 
-async function updateUIMessages(fetchURI, eraseMessages=true) {
-  
-  let messages = await fetchMessages(fetchURI);
-  //refetching
-  if (!messages.length) {
+async function updateUIMessages(fetchURI, eraseMessages = true) {
+  try {
+    let messages = await fetchMessages(fetchURI);
+    //refetching
+    if (!messages.length) {
+      fetchAttempt++;
+      if (fetchAttempt < FETCH_THRESHOLD) {
+        console.log("refetching");
+        setTimeout(() => updateUIMessages(fetchURI, eraseMessages), 2000);
+      } else {
+        console.log("aborting fetch");
+        fetchAttempt = 0;
+      }
+    } else {
+      if (eraseMessages) eraseCurrentMessages();
+      printMessages(messages);
+      showSeeMoreButton();
+    }
+  } catch (e) {
+    console.log("exception happend... retrying...");
     fetchAttempt++;
-    if(fetchAttempt < FETCH_THRESHOLD){
-      console.log("refetching");
-      setTimeout(() => updateUIMessages(fetchURI, eraseMessages), 2000);
-    }
-    else{
-      console.log("aborting fetch");
-      fetchAttempt = 0;
-    }
-  }else{
-    if(eraseMessages) eraseCurrentMessages();
-    printMessages(messages);
-    showSeeMoreButton();
+    updateUIMessages(fetchURI, eraseMessages);
   }
 }
 
-async function showSeeMoreButton(){
+async function showSeeMoreButton() {
   let response = await fetch(messageCountEndpoint);
   let messagesAtDb = await response.json();
-  console.log("count was: " + messagesAtDb);
-  if(messagesAtDb > messagesShown){
+  if (messagesAtDb > messagesShown) {
     seeMoreDiv.classList.remove("hidden");
-  }else{
+  } else {
     seeMoreDiv.classList.add("hidden");
   }
-  
 }
 
 function eraseCurrentMessages() {
@@ -151,16 +171,16 @@ function eraseCurrentMessages() {
 
 function hasTodaysDate(messageDate) {
   const today = new Date();
-  return today.getFullYear() === messageDate.getFullYear() &&
-  today.getMonth() === messageDate.getMonth() &&
-  today.getDate() === messageDate.getDate();
+  return (
+    today.getFullYear() === messageDate.getFullYear() &&
+    today.getMonth() === messageDate.getMonth() &&
+    today.getDate() === messageDate.getDate()
+  );
 }
 
 function createMessageElement(message) {
-  
-
-  const messageContainer = document.createElement('div');
-  messageContainer.id = `div-${message.id}`
+  const messageContainer = document.createElement("div");
+  messageContainer.id = `div-${message.id}`;
 
   const authorLabel = document.createElement("label");
   authorLabel.classList.add("author");
@@ -169,7 +189,7 @@ function createMessageElement(message) {
 
   const deleteButton = document.createElement("button");
   deleteButton.classList.add("delete-button");
-  deleteButton.textContent = 'x';
+  deleteButton.textContent = "x";
   deleteButton.id = message.id;
   deleteButton.addEventListener("click", handleDeleteMessage);
   messageContainer.append(deleteButton);
@@ -177,64 +197,89 @@ function createMessageElement(message) {
   const br = document.createElement("br");
   messageContainer.append(br);
 
-
   const messagePar = document.createElement("span");
   messagePar.classList.add("messagePar");
   messagePar.textContent = message.message;
   messageContainer.append(messagePar);
 
-
-  if(message.date){
-    const messageDate = new Date(message.date.replace("T", " ") + " UTC");
-    const datePar = document.createElement("span");
-    datePar.classList.add("datePar");
-    if(hasTodaysDate(messageDate)){
-      let minutes = messageDate.getMinutes();
-      if(minutes <= 9){
-        minutes = "0" + minutes;
-      }
-      let hours = messageDate.getHours();
-      if(hours <= 9){
-        hours = "0" + hours;
-      }
-      
-      datePar.textContent = `${hours}:${minutes}`;
-    }else{
-      datePar.textContent = `${messageDate.getDay()}-${messageDate.getMonth() + 1}-${messageDate.getFullYear()}`;
-    }
+  if (message.date) {
+    const datePar = getDateFromMessage(message);
     messageContainer.append(datePar);
   }
-  
 
   messageContainer.append(document.createElement("hr"));
 
-  messagesDiv.append(messageContainer);
+  if (message.id === "temp") {
+    messagesDiv.insertBefore(messageContainer, messagesDiv.firstChild);
+  } else {
+    messagesDiv.append(messageContainer);
+  }
+
+  return messageContainer;
+}
+
+function getDateFromMessage(message) {
+  const datePar = document.createElement("span");
+  datePar.classList.add("datePar");
+
+  if (message.id === "temp") {
+    let now = new Date();
+    datePar.textContent =
+      addZeroToDate(now.getHours()) + ":" + addZeroToDate(now.getMinutes());
+
+    return datePar;
+  }
+
+  const messageDate = new Date(message.date.replace("T", " ") + " UTC");
+  if (hasTodaysDate(messageDate)) {
+    let minutes = messageDate.getMinutes();
+    minutes = addZeroToDate(minutes);
+    let hours = messageDate.getHours();
+    hours = addZeroToDate(hours);
+    datePar.textContent = `${hours}:${minutes}`;
+  } else {
+    datePar.textContent = `${messageDate.getDay()}-${
+      messageDate.getMonth() + 1
+    }-${messageDate.getFullYear()}`;
+  }
+  return datePar;
+
+  function addZeroToDate(timeUnit) {
+    if (timeUnit <= 9) {
+      timeUnit = "0" + timeUnit;
+    }
+    return timeUnit;
+  }
 }
 
 function printMessages(messages) {
-  const sortedMessages = Object.values(messages).sort( (m1, m2) => m1.id < m2.id ? 1 : -1);
+  const sortedMessages = Object.values(messages).sort((m1, m2) =>
+    m1.id < m2.id ? 1 : -1
+  );
   for (let message of sortedMessages) {
     messagesShown++;
     createMessageElement(message);
   }
 }
 
-
 postMessageButton.addEventListener("click", handlePostMessage);
-seeMoreButton.addEventListener("click",
- () => updateUIMessages(allButFirstMessagesEndpoint, false));
- messageInput.addEventListener("keyup", function(e) {
-   console.log(e.key);
-   if(e.key === "Enter"){
-     e.preventDefault();
-     handlePostMessage(e)
-   }
- });
+seeMoreButton.addEventListener("click", () => {
+  if (dirtyList) {
+    dirtyList = false;
+    updateUIMessages(getAllMessagesEndPoint, true);
+  } else {
+    updateUIMessages(allButFirstMessagesEndpoint, false);
+  }
+});
+
+messageInput.addEventListener("keyup", function (e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    handlePostMessage(e);
+  }
+});
 
 updateUIMessages();
-if(messagesShown > 0){
+if (messagesShown > 0) {
   document.getElementById("loadingMessagesDiv").classList.add("hidden");
 }
-
-
-
