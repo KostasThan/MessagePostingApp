@@ -6,21 +6,33 @@ const date = document.getElementById("date");
 const messagesDiv = document.getElementById("messagesDiv");
 const authorInput = document.getElementById("authorInput");
 const messageInput = document.getElementById("messageInput");
+const seeMoreDiv = document.getElementById("seeMoreDiv");
+const seeMoreButton = document.getElementById("seeMoreButton");
+const INITIAL_SIZE = 5;
+const FETCH_THRESHOLD = 2;
+
 const getAllMessagesEndPoint =
   "https://infinite-escarpment-61510.herokuapp.com/https://herokudbm.herokuapp.com/messages";
 
 const postMessageEndpoint =
   "https://infinite-escarpment-61510.herokuapp.com/https://herokudbm.herokuapp.com/messages/testroute";
-// const postMessageEndpoint = "https://herokudbm.herokuapp.com/messages";
+const messageCountEndpoint = 
+"https://infinite-escarpment-61510.herokuapp.com/https://herokudbm.herokuapp.com/messages/count";
+
+const firstMessagesEndpoint = getAllMessagesEndPoint + `?limit=${INITIAL_SIZE}`
+const allButFirstMessagesEndpoint = getAllMessagesEndPoint + `offset=${INITIAL_SIZE}&limit=`
+
 const postMessageButton = document.getElementById("postMessageButton");
 
-const FETCH_THRESHOLD = 2;
+let messagesShown = 0;
 let fetchAttempt = 0;
 
 async function handleDeleteMessage(event){
   document.getElementById(`div-${event.srcElement.id}`).remove();
   await sendRequest(getAllMessagesEndPoint + `/${event.srcElement.id}`, "DELETE");
-  setTimeout(updateUIMessages, 1000);
+  //if delete fails, we need to rerender the message
+
+  // setTimeout(() => updateUIMessages(firstMessagesEndpoint, true), 1000);
 }
 
 
@@ -39,19 +51,15 @@ async function postMessage() {
 
   const author = authorInput.value;
   const message = messageInput.value;
-
   if(author && message){
-
     const body = {
       author,
       message,
     };
-  
     console.log("sending");
     const resp = await sendRequest(postMessageEndpoint, "PUT", body);
-    
-  
-    setTimeout(updateUIMessages, 1500);
+
+    setTimeout(() => updateUIMessages(firstMessagesEndpoint, true), 1500);
   }
 }
 
@@ -76,33 +84,64 @@ async function sendRequest(url , method, message = {}) {
   return response;
 }
 
-async function fetchMessages() {
-  const response = await fetch(getAllMessagesEndPoint);
-  return await response.json();
+async function getMessageRequest(response) {
+  if (INITIAL_SIZE) {
+    console.log("sending paginated message");
+    response = await fetch(getAllMessagesEndPoint + `?limit=${INITIAL_SIZE}`);
+    console.log("endpoint: " + getAllMessagesEndPoint + `?size=${INITIAL_SIZE}`)
+
+  } else {
+    console.log("asking for all messages");
+    response = await fetch(getAllMessagesEndPoint);
+  }
+  return response;
 }
 
-async function updateUIMessages() {
+async function fetchMessages(fetchURI){
   console.log("initiating fetch");
-  let response = await fetch(getAllMessagesEndPoint);
+  
+  let response;
+  response = await getMessageRequest(response);
   let messages = await response?.json();
   console.log("fetched\n");
+  return messages;
+}
+
+async function updateUIMessages(fetchURI, eraseMessages=true) {
+  
+  let messages = await fetchMessages(fetchURI);
   //refetching
   if (!messages.length) {
     fetchAttempt++;
     if(fetchAttempt < FETCH_THRESHOLD){
       console.log("refetching");
-      setTimeout(updateUIMessages, 2000);
+      setTimeout(() => updateUIMessages(fetchURI, eraseMessages), 2000);
     }
     else{
       console.log("aborting fetch");
       fetchAttempt = 0;
     }
   }else{
+    if(eraseMessages) eraseCurrentMessages();
     printMessages(messages);
+    showSeeMoreButton();
   }
 }
 
+async function showSeeMoreButton(){
+  let response = await fetch(messageCountEndpoint);
+  let messagesAtDb = await response.json();
+  console.log("count was: " + messagesAtDb);
+  if(messagesAtDb > messagesShown){
+    seeMoreDiv.classList.remove("hidden");
+  }else{
+    seeMoreDiv.classList.add("hidden");
+  }
+  
+}
+
 function eraseCurrentMessages() {
+  messagesShown = 0;
   while (messagesDiv.lastElementChild) {
     messagesDiv.removeChild(messagesDiv.lastElementChild);
   }
@@ -143,13 +182,21 @@ function createMessageElement(message) {
   messageContainer.append(messagePar);
 
 
-  console.log(message.date);
   if(message.date){
     const messageDate = new Date(message.date.replace("T", " ") + " UTC");
     const datePar = document.createElement("span");
     datePar.classList.add("datePar");
     if(hasTodaysDate(messageDate)){
-      datePar.textContent = `${messageDate.getHours()}:${messageDate.getMinutes()}`;
+      let minutes = messageDate.getMinutes();
+      if(minutes <= 9){
+        minutes = "0" + minutes;
+      }
+      let hours = messageDate.getHours();
+      if(hours <= 9){
+        hours = "0" + hours;
+      }
+      
+      datePar.textContent = `${hours}:${minutes}`;
     }else{
       datePar.textContent = `${messageDate.getDay()}-${messageDate.getMonth() + 1}-${messageDate.getFullYear()}`;
     }
@@ -163,13 +210,23 @@ function createMessageElement(message) {
 }
 
 function printMessages(messages) {
-  eraseCurrentMessages();
   const sortedMessages = Object.values(messages).sort( (m1, m2) => m1.id < m2.id ? 1 : -1);
   for (let message of sortedMessages) {
+    messagesShown++;
     createMessageElement(message);
   }
 }
 
+
 postMessageButton.addEventListener("click", handlePostMessage);
+seeMoreButton.addEventListener("click",
+ () => updateUIMessages(allButFirstMessagesEndpoint, false));
+
+
 updateUIMessages();
+
+if(messagesShown > 0){
+  document.getElementById("loadingMessagesDiv").classList.add("hidden");
+}
+
 

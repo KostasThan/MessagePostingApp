@@ -8,22 +8,28 @@
   </head>
   <body>
     <div>
-      <h3>Want to enter a message?</h3>
+      <h3>Want to enter a message?🤔</h3>
       <div id="formDiv">
         <form">
           <label for="fname">Author:</label><br />
           <input type="text" id="authorInput" /><br />
           <label for="messageInput">Message:</label><br />
-          <textarea class="textarea" id="messageInput"></textarea></p><br /><br />
+          <textarea class="textarea" id="messageInput"></textarea></p><br/>
           <input class = "submitButton" type="button" value="Submit" id="postMessageButton" />
         </form>
       </div>
     </div>
     <div class="messagesDiv" id='messagesDiv'>
     
-      <h3 style = "font-style: italic">No messages... Try posting one!</h2>
+      <div id="loadingMessagesDiv">
+        Loading Messages... <br/>
+      <div class="lds-circle"><div></div></div>
+    </div>
     </div>
 
+    <div id ="seeMoreDiv" class="rightDiv hidden">
+      <button id="seeMoreButton" class="seeMore">(See More)</button>
+    </div>
   </body>
   <script src="script.js"></script>
 </html>
