@@ -145,3 +145,8 @@ hr {
     font-style: italic;
 }
   
+#noMessagesDiv{
+  text-align: center;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-style: italic;
+}
