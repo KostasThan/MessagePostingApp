@@ -35,6 +35,7 @@ async function handleDeleteMessage(event) {
     const resp = await httpRequestGenerator.sendDeleteRequest(id);
     if (requestSuccedded(resp)) {
       deletedElement.remove();
+      updateSeeMoreButton();
     } else {
       deletedElement.classList.remove("hidden");
     }
@@ -48,11 +49,15 @@ async function handlePostMessage(event) {
   const message = messageInput.value;
 
   if (author && message) {
-    const temp = uiHandler.createTempElement(author, message);
+    const {messageContainer, deleteButton} = uiHandler.createTempElement(author, message);
+
+    console.log(messageContainer, deleteButton);
     uiHandler.clearInputs();
     const resp = await httpRequestGenerator.sendPostRequest(author, message);
     if (requestSuccedded(resp)) {
       let message = await resp.json();
+      messageContainer.id = `div-${message.id}`;
+      deleteButton.id = message.id;
       updateSeeMoreButton();
     } //else message to user if not succeededelse
     else {
@@ -83,9 +88,13 @@ function requestSuccedded(request) {
 }
 
 async function updateSeeMoreButton() {
+  console.log("updating button");
+
   let response = await httpRequestGenerator.sendMessageCountRequest();
   if (requestSuccedded(response)) {
     let messagesAtDb = await response.json();
+    console.log("messages at db", messagesAtDb);
+
     uiHandler.updateSeeMoreButton(messagesAtDb);
   }
 }

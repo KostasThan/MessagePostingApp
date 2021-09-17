@@ -97,10 +97,13 @@ class UIHandler {
   }
 
   updateSeeMoreButton(total) {
+      console.log("i have total input", total);
+      console.log("while i am showing ", this.#messagesShown);
     if (total > this.#messagesShown) {
-      seeMoreDiv.classList.remove("hidden");
+      this.#seeMoreDiv.classList.remove("hidden");
+      
     } else {
-      seeMoreDiv.classList.add("hidden");
+        this.#seeMoreDiv.classList.add("hidden");
     }
   }
 
@@ -144,7 +147,7 @@ class UIHandler {
 
     messageContainer.append(document.createElement("hr"));
 
-    if (message.id === "temp") {
+    if ((message.id + "").startsWith("temp")) {
       messagesDiv.insertBefore(messageContainer, messagesDiv.firstChild);
     } else {
       messagesDiv.append(messageContainer);
@@ -153,7 +156,7 @@ class UIHandler {
     this.#messagesShown += 1;
     this.updateNoMessagesDiv();
 
-    return messageContainer;
+    return {messageContainer, deleteButton};
   }
 
   //show more button handler

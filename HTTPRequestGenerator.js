@@ -33,13 +33,10 @@ class HTTPRequestGenerator {
   }
 
   async sendGetAllMessagesRequest(){
-      console.log("sending get all messages request")
       return await fetch(this.#getAllMessagesEndPoint);
   }
 
   async sendGetPaginatedMessagesRequest(offset, limit){
-      console.log(offset, "offset");
-      console.log(limit, "limit")
     let endpoint = 
     this.#getPaginatedMessagesEndPoint.replace("%",offset).replace("%",limit);
     return await fetch(endpoint);
